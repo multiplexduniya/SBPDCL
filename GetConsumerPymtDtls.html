@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Details</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center; /* Center the contents of the container */
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            text-align: left; /* Align table content to the left */
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .status-success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-failure {
+            color: red;
+            font-weight: bold;
+        }
+
+        /* Style form input fields */
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+		/* Style for pagination buttons */
+		.pagination button {
+		padding: 10px 20px;
+		margin-right: 10px;
+		cursor: pointer;
+		background-color: #28a745;
+		color: #fff;
+		border: none;
+		border-radius: 5px;
+		font-size: 16px;
+		transition: background-color 0.3s ease;
+		}
+		.pagination button:disabled {
+		background-color: #6c757d;
+		cursor: not-allowed
+		}
+		.pagination button:hover {
+		background-color: #218838; /* Darker shade when hovered */
+		}
+
+
+        /* Style the submit button */
+		input[type="submit"] {
+		background-color: #007bff;
+		color: #fff;
+		padding: 10px 15px;
+		border: none;
+		border-radius: 3px;
+		cursor: pointer;
+		width: 100%; /* Make the button full width */
+		font-size: 16px;
+		box-sizing: border-box; /* Include padding in width calculation */
+		}
+		/* Change button color on hover */
+		input[type="submit"]:hover {
+		background-color: #0056b3;
+		}
+		
+        /* Style the Balance Check button */
+		.btn-balance {
+		display: inline-block;
+		padding: 8px 12px; /* Adjust padding for smaller size */
+		border: none;
+		border-radius: 3px;
+		cursor: pointer;
+		text-decoration: none;
+		font-size: 14px; /* Adjust font size for smaller text */
+		background-color: #28a745; /* Green background color */
+		color: #fff; /* White text color */
+		margin-top: 10px; /* Add some top margin */
+		}
+		/* Change Balance Check button color on hover */
+		.btn-balance:hover {
+		background-color: #218838; /* Darker green on hover */
+		}
+
+        /* Copyright footer */
+        footer {
+            text-align: center;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>SBPDCL - All Payment Details</h1>
+        <form id="paymentForm">
+            <label for="ConId">Enter Consumer ID:</label>
+            <input type="text" id="ConId" name="ConId" required>
+            <input type="submit" value="Get Details">
+        </form>
+        <div class="details" id="paymentDetails">
+            <!-- Payment details will be inserted here dynamically -->
+        </div>
+        <div class="pagination" id="pagination">
+            <!-- Pagination controls will be inserted here dynamically -->
+        </div>
+        <!-- Additional links for various details -->
+        <a href="GetConsumerDtls.html" class="btn btn-balance">Customer Details</a>
+        <a href="GetSMPaymentDetails.html" class="btn btn-balance">Balance Check</a>
+        <a href="GetConsumerPymtDtls.html" class="btn btn-balance">Payments Details</a>
+        <a href="GetConsumerConnDate.html" class="btn btn-balance">Connection Date</a>
+        <a href="GetConsumerBillingDetails.html" class="btn btn-balance">Billing Details</a>
+		<a href="ViewBill.html" class="btn btn-balance">Download Bill</a>
+    <footer>
+        <p>Copyright &copy; 2024 by Jhakhas Teams. All rights reserved.</p>
+    </footer>
+
+    <script>
+        let currentPage = 1;
+        const pageSize = 10;
+        let currentPaymentDetails; // Store fetched payment details
+
+        document.getElementById("paymentForm").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent default form submission
+
+            let headersList = {
+                "Accept": "application/xml",
+                "Content-Type": "application/x-www-form-urlencoded"
+            };
+
+            let ConId = document.getElementById("ConId").value;
+            let bodyContent = "ConId=" + encodeURIComponent(ConId);
+
+            fetch("http://hargharbijli.bsphcl.co.in/WebService/WebServiceGIS.asmx/GetConsumerPymtDtls", {
+                method: "POST",
+                headers: headersList,
+                body: bodyContent
+            })
+                .then(response => response.text())
+                .then(xmlData => {
+                    let parser = new DOMParser();
+                    let xmlDoc = parser.parseFromString(xmlData, "text/xml");
+                    let jsonString = xmlDoc.getElementsByTagName("string")[0].textContent;
+
+                    if (jsonString) {
+                        currentPaymentDetails = JSON.parse(jsonString);
+                        displayPaymentDetails(currentPage);
+                    } else {
+                        displayErrorMessage("No payment details found.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    displayErrorMessage("Error retrieving payment details. Please try again.");
+                });
+        });
+
+        function displayPaymentDetails(page) {
+            const totalPages = Math.ceil(currentPaymentDetails.ConsumerPymtDtlsMapping.length / pageSize);
+            const startIndex = (page - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const paginatedData = currentPaymentDetails.ConsumerPymtDtlsMapping.slice(startIndex, endIndex);
+
+            let paymentDetailsHTML = `
+                <table>
+                    <tr>
+                        <th>Month</th>
+                        <th>Amount</th>
+                    </tr>
+            `;
+
+            paginatedData.forEach(details => {
+                if (details) {
+                    paymentDetailsHTML += `
+                        <tr>
+                            <td>${details[0]}</td>
+                            <td>${details[1]}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            paymentDetailsHTML += `</table>`;
+            document.getElementById("paymentDetails").innerHTML = paymentDetailsHTML;
+
+            // Display pagination controls
+            displayPagination(totalPages);
+        }
+
+        function displayPagination(totalPages) {
+            let paginationHTML = "";
+
+            if (totalPages > 1) {
+                paginationHTML += `
+                    <button onclick="prevPage()" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
+                    <button onclick="nextPage()" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
+                `;
+            }
+
+            document.getElementById("pagination").innerHTML = paginationHTML;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                displayPaymentDetails(currentPage);
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(currentPaymentDetails.ConsumerPymtDtlsMapping.length / pageSize);
+            if (currentPage < totalPages) {
+                currentPage++;
+                displayPaymentDetails(currentPage);
+            }
+        }
+
+        function displayErrorMessage(message) {
+            document.getElementById("paymentDetails").innerHTML = `
+                <p class="error-message">${message}</p>
+            `;
+            document.getElementById("pagination").innerHTML = "";
+        }
+    </script>
+</body>
+
+</html>

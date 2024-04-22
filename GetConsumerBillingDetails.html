@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consumer Billing Details</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        button {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 16px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+			text-align: left; /* Align table cells to the left */
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .status-success {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-failure {
+            color: red;
+            font-weight: bold;
+        }
+
+        /* Style form input fields */
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+		/* Style for pagination buttons */
+		.pagination button {
+		padding: 10px 20px;
+		margin-right: 10px;
+		cursor: pointer;
+		background-color: #28a745;
+		color: #fff;
+		border: none;
+		border-radius: 5px;
+		font-size: 16px;
+		transition: background-color 0.3s ease;
+		}
+		.pagination button:disabled {
+		background-color: #6c757d;
+		cursor: not-allowed
+		}
+		.pagination button:hover {
+		background-color: #218838; /* Darker shade when hovered */
+		}
+
+
+        /* Style the submit button */
+		input[type="submit"] {
+		background-color: #007bff;
+		color: #fff;
+		padding: 10px 15px;
+		border: none;
+		border-radius: 3px;
+		cursor: pointer;
+		width: 100%; /* Make the button full width */
+		font-size: 16px;
+		box-sizing: border-box; /* Include padding in width calculation */
+		}
+		/* Change button color on hover */
+		input[type="submit"]:hover {
+		background-color: #0056b3;
+		}
+		
+        /* Style the Balance Check button */
+		.btn-balance {
+		display: inline-block;
+		padding: 8px 12px; /* Adjust padding for smaller size */
+		border: none;
+		border-radius: 3px;
+		cursor: pointer;
+		text-decoration: none;
+		font-size: 14px; /* Adjust font size for smaller text */
+		background-color: #28a745; /* Green background color */
+		color: #fff; /* White text color */
+		margin-top: 10px; /* Add some top margin */
+		}
+		/* Change Balance Check button color on hover */
+		.btn-balance:hover {
+		background-color: #218838; /* Darker green on hover */
+		}
+
+        /* Copyright footer */
+        footer {
+            text-align: center;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>SBPDCL - Consumer Billing Details</h1>
+        <form id="billingDetailsForm">
+            <label for="consumerId">Enter Consumer ID:</label>
+            <input type="text" id="consumerId" name="consumerId" required>
+            <button type="submit">Get Billing Details</button>
+        </form>
+        <div id="billingDetailsResult"></div>
+        <div id="connectionDateResult"></div>
+        
+        <!-- Additional links for various details -->
+        <a href="GetConsumerDtls.html" class="btn btn-balance">Customer Details</a>
+        <a href="GetSMPaymentDetails.html" class="btn btn-balance">Balance Check</a>
+        <a href="GetConsumerPymtDtls.html" class="btn btn-balance">Payments Details</a>
+        <a href="GetConsumerConnDate.html" class="btn btn-balance">Connection Date</a>
+        <a href="GetConsumerBillingDetails.html" class="btn btn-balance">Billing Details</a>
+		<a href="ViewBill.html" class="btn btn-balance">Download Bill</a>
+        <footer>
+            <p>Copyright &copy; 2024 by Jhakhas Teams. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById("billingDetailsForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            let consumerId = document.getElementById("consumerId").value;
+
+            fetch("http://hargharbijli.bsphcl.co.in/WebService/WebServiceGIS.asmx/GetConsumerBillingDetails", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Origin": "http://hargharbijli.bsphcl.co.in"
+                    },
+                    body: `CA_Number=${consumerId}`
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    // Parse the XML string to extract JSON data
+                    let parser = new DOMParser();
+                    let xmlDoc = parser.parseFromString(data, "text/xml");
+                    let jsonString = xmlDoc.getElementsByTagName("string")[0].textContent;
+                    let jsonData = JSON.parse(jsonString);
+
+                    let resultHTML = `
+                        <table>
+                            <tr>
+                                <th>Field</th>
+                                <th>Value</th>
+                            </tr>
+                            <tr>
+                                <td>Consumer Name</td>
+                                <td>${jsonData.ConsumerName}</td>
+                            </tr>
+                            <tr>
+                                <td>Bill Month</td>
+                                <td>${jsonData.BillMonth}</td>
+                            </tr>
+                            <tr>
+                                <td>Due Date</td>
+                                <td>${jsonData.DueDate}</td>
+                            </tr>
+                            <tr>
+                                <td>Amount Before Due Date</td>
+                                <td>${jsonData.AmountBeforeDueDate}</td>
+                            </tr>
+                            <tr>
+                                <td>Amount Upto Due Date + 10 Days</td>
+                                <td>${jsonData.AmountUptoDuedate_plus10Days}</td>
+                            </tr>
+                            <tr>
+                                <td>Amount After Due Date + 10 Days</td>
+                                <td>${jsonData.AmountAfterDuedate_plus10Days}</td>
+                            </tr>
+                            <tr>
+                                <td>Previous Amount</td>
+                                <td>${jsonData.PreviousAmount}</td>
+                            </tr>
+                            <tr>
+                                <td>Previous Date</td>
+                                <td>${jsonData.PreviousDate}</td>
+                            </tr>
+                        </table>
+                    `;
+
+                    document.getElementById("billingDetailsResult").innerHTML = resultHTML;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById("billingDetailsResult").innerHTML = "<p class='error'>Error retrieving billing details. Please try again.</p>";
+                });
+        });
+    </script>
+</body>
+
+</html>

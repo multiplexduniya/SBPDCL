@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Download</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            text-align: center; /* Center the contents of the container */
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button[type="submit"] {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        #connectionDateResult {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        /* Pagination button styles */
+        .pagination button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .pagination button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .pagination button:hover {
+            background-color: #218838;
+        }
+
+        /* Balance Check button styles */
+        .btn-balance {
+            display: inline-block;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            background-color: #28a745;
+            color: #fff;
+            margin-top: 10px;
+        }
+
+        .btn-balance:hover {
+            background-color: #218838;
+        }
+
+        /* Copyright footer */
+        footer {
+            text-align: center;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>SBPDCL - Bill Download</h1>
+        <form id="connectionForm">
+            <label for="consumerId">Enter Consumer ID:</label>
+            <input type="text" id="consumerId" name="consumerId" required>
+            <button type="submit">Download PDF</button>
+        </form>
+        <div id="connectionDateResult"></div>
+        
+        <!-- Additional links for various details -->
+        <a href="GetConsumerDtls.html" class="btn btn-balance">Customer Details</a>
+        <a href="GetSMPaymentDetails.html" class="btn btn-balance">Balance Check</a>
+        <a href="GetConsumerPymtDtls.html" class="btn btn-balance">Payments Details</a>
+        <a href="GetConsumerConnDate.html" class="btn btn-balance">Connection Date</a>
+        <a href="GetConsumerBillingDetails.html" class="btn btn-balance">Billing Details</a>
+		<a href="ViewBill.html" class="btn btn-balance">Download Bill</a>
+        <footer>
+            <p>Copyright &copy; 2024 by Jhakhas Teams. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById("connectionForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+                        let consumerId = document.getElementById("consumerId").value;
+
+            // Construct the body of the POST request
+            let bodyContent = `strCANumber=${encodeURIComponent(consumerId)}`;
+
+            fetch("https://www.sbpdcl.co.in/WSMobileApp/ViewBill.asmx/GetViewBill", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Origin": "https://www.sbpdcl.co.in"
+                    },
+                    body: bodyContent
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.blob(); // Get the response as a blob
+                })
+                .then(blob => {
+                    // Create a blob URL from the response blob
+                    const blobUrl = URL.createObjectURL(blob);
+
+                    // Create a link element and simulate a click to trigger download
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = `ConsumerBill_${consumerId}.pdf`; // Specify the filename for download
+                    document.body.appendChild(a);
+                    a.click(); // Simulate a click on the link
+                    document.body.removeChild(a); // Clean up by removing the link element
+                })
+        });
+    </script>
+</body>
+
+</html>
